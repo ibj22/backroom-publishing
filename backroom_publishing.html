@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Backroom Publishing</title>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --almost-black: #111111;
+    --dark: #1a1a1a;
+    --charcoal: #2a2a2a;
+    --smoke: #3a3a3a;
+    --ash: #6a6a6a;
+    --muted: #8a8a8a;
+    --light: #c8c8c8;
+    --cream: #e8e4dc;
+    --warm-white: #f2efe8;
+    --red: #c23a22;
+    --red-dim: #8a2a18;
+    --amber: #d4a04a;
+    --amber-dim: rgba(212,160,74,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+    background: var(--black);
+    overflow-x: hidden;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    color: var(--light);
+    background: var(--black);
+    line-height: 1.7;
+    cursor: default;
+  }
+
+  ::selection {
+    background: var(--red);
+    color: var(--cream);
+  }
+
+  /* ─── GRAIN OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ─── SCANLINE ─── */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: repeating-linear-gradient(
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 9998;
+  }
+
+  /* ─── UTILITY ─── */
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  .typewriter {
+    font-family: 'Special Elite', 'Courier New', monospace;
+  }
+
+  .serif {
+    font-family: 'Instrument Serif', Georgia, serif;
+  }
+
+  .mono {
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .redacted {
+    background: var(--light);
+    color: var(--light);
+    padding: 0 4px;
+    user-select: none;
+    transition: all 0.4s ease;
+    cursor: pointer;
+  }
+  .redacted:hover {
+    background: var(--red);
+    color: var(--cream);
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    padding: 80px 0;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(194,58,34,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 80%, rgba(212,160,74,0.03) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .classified-stamp {
+    display: inline-block;
+    border: 2px solid var(--red);
+    color: var(--red);
+    padding: 4px 16px;
+    font-family: 'Special Elite', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    transform: rotate(-2deg);
+    opacity: 0;
+    animation: stampIn 0.6s ease 0.8s forwards;
+    margin-bottom: 48px;
+  }
+
+  @keyframes stampIn {
+    0% { opacity: 0; transform: rotate(-2deg) scale(1.5); }
+    50% { opacity: 0.9; transform: rotate(-2deg) scale(0.95); }
+    100% { opacity: 1; transform: rotate(-2deg) scale(1); }
+  }
+
+  .hero-title {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: clamp(48px, 8vw, 96px);
+    font-weight: 400;
+    line-height: 1.0;
+    color: var(--cream);
+    letter-spacing: -1px;
+    opacity: 0;
+    animation: fadeUp 1s ease 0.3s forwards;
+    margin-bottom: 8px;
+  }
+
+  .hero-title em {
+    font-style: italic;
+    color: var(--red);
+  }
+
+  .hero-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 300;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    opacity: 0;
+    animation: fadeUp 1s ease 0.6s forwards;
+    margin-bottom: 60px;
+  }
+
+  .hero-intro {
+    max-width: 620px;
+    font-size: 18px;
+    font-weight: 300;
+    color: var(--muted);
+    line-height: 1.9;
+    opacity: 0;
+    animation: fadeUp 1s ease 1.0s forwards;
+  }
+
+  .hero-intro strong {
+    color: var(--cream);
+    font-weight: 500;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─── DIVIDER ─── */
+  .divider {
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--charcoal) 20%, var(--charcoal) 80%, transparent);
+    margin: 0;
+  }
+
+  .divider-section {
+    padding: 20px 0;
+    text-align: center;
+  }
+
+  .divider-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: var(--smoke);
+  }
+
+  /* ─── SECTION: THE DOCTRINE ─── */
+  .doctrine {
+    padding: 120px 0;
+    position: relative;
+  }
+
+  .doctrine-number {
+    font-family: 'Instrument Serif', serif;
+    font-size: 120px;
+    font-weight: 400;
+    color: var(--dark);
+    line-height: 1;
+    margin-bottom: -20px;
+    position: relative;
+    z-index: 0;
+  }
+
+  .doctrine-heading {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 400;
+    color: var(--cream);
+    margin-bottom: 32px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .doctrine-text {
+    font-size: 16px;
+    font-weight: 300;
+    color: var(--muted);
+    line-height: 2;
+    max-width: 640px;
+  }
+
+  .doctrine-text strong {
+    color: var(--cream);
+    font-weight: 500;
+  }
+
+  /* ─── MANIFESTO BLOCK ─── */
+  .manifesto {
+    padding: 120px 0;
+    background: var(--almost-black);
+    border-top: 1px solid var(--dark);
+    border-bottom: 1px solid var(--dark);
+    position: relative;
+  }
+
+  .manifesto::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(212,160,74,0.03) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .manifesto-quote {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: clamp(24px, 3.5vw, 40px);
+    font-weight: 400;
+    font-style: italic;
+    color: var(--cream);
+    line-height: 1.5;
+    max-width: 780px;
+    margin: 0 auto;
+    text-align: center;
+    position: relative;
+  }
+
+  .manifesto-quote::before {
+    content: '"';
+    font-size: 140px;
+    font-family: 'Instrument Serif', serif;
+    color: var(--charcoal);
+    position: absolute;
+    top: -60px;
+    left: -30px;
+    line-height: 1;
+  }
+
+  .manifesto-attr {
+    text-align: center;
+    margin-top: 32px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--smoke);
+  }
+
+  /* ─── DOSSIER CARDS ─── */
+  .dossier-section {
+    padding: 120px 0;
+  }
+
+  .dossier-section-header {
+    margin-bottom: 80px;
+  }
+
+  .dossier-section-header h2 {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 400;
+    color: var(--cream);
+    margin-bottom: 16px;
+  }
+
+  .dossier-section-header p {
+    font-size: 16px;
+    font-weight: 300;
+    color: var(--ash);
+    max-width: 500px;
+  }
+
+  .dossier-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+  }
+
+  .dossier-card {
+    background: var(--almost-black);
+    border: 1px solid var(--dark);
+    padding: 48px 40px;
+    transition: all 0.5s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .dossier-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px;
+    height: 0;
+    background: var(--red);
+    transition: height 0.4s ease;
+  }
+
+  .dossier-card:hover::before {
+    height: 100%;
+  }
+
+  .dossier-card:hover {
+    background: var(--dark);
+    border-color: var(--smoke);
+  }
+
+  .dossier-card-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--red-dim);
+    margin-bottom: 20px;
+  }
+
+  .dossier-card h3 {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 24px;
+    font-weight: 400;
+    color: var(--cream);
+    margin-bottom: 16px;
+  }
+
+  .dossier-card p {
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--ash);
+    line-height: 1.9;
+  }
+
+  /* ─── THE SIGNAL ─── */
+  .signal-section {
+    padding: 120px 0;
+    text-align: center;
+    position: relative;
+  }
+
+  .signal-section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 50% 50%, rgba(194,58,34,0.05) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .signal-overline {
+    font-family: 'Special Elite', monospace;
+    font-size: 12px;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 32px;
+    display: block;
+  }
+
+  .signal-heading {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 400;
+    color: var(--cream);
+    line-height: 1.2;
+    margin-bottom: 32px;
+  }
+
+  .signal-text {
+    font-size: 17px;
+    font-weight: 300;
+    color: var(--ash);
+    max-width: 560px;
+    margin: 0 auto 48px;
+    line-height: 1.9;
+  }
+
+  .signal-cta {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--cream);
+    border: 1px solid var(--smoke);
+    padding: 18px 48px;
+    text-decoration: none;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .signal-cta::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: var(--red);
+    transition: left 0.4s ease;
+    z-index: 0;
+  }
+
+  .signal-cta:hover::before {
+    left: 0;
+  }
+
+  .signal-cta span {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    padding: 60px 0;
+    border-top: 1px solid var(--dark);
+  }
+
+  .footer-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-logo {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 18px;
+    color: var(--cream);
+  }
+
+  .footer-legal {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--smoke);
+    text-transform: uppercase;
+  }
+
+  /* ─── FILE TAB ─── */
+  .file-tab {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--dark);
+    border: 1px solid var(--charcoal);
+    padding: 8px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--smoke);
+    z-index: 100;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 1.5s forwards;
+  }
+
+  .file-tab .dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--red);
+    margin-right: 8px;
+    animation: pulse 2s ease infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  /* ─── PRINCIPLE STRIPS ─── */
+  .principles {
+    padding: 100px 0;
+  }
+
+  .principle-strip {
+    display: flex;
+    align-items: baseline;
+    padding: 32px 0;
+    border-bottom: 1px solid var(--dark);
+    gap: 40px;
+    transition: all 0.3s ease;
+  }
+
+  .principle-strip:first-child {
+    border-top: 1px solid var(--dark);
+  }
+
+  .principle-strip:hover {
+    padding-left: 12px;
+    border-color: var(--charcoal);
+  }
+
+  .principle-num {
+    font-family: 'Instrument Serif', serif;
+    font-size: 14px;
+    color: var(--red-dim);
+    min-width: 30px;
+    font-style: italic;
+  }
+
+  .principle-title {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 22px;
+    color: var(--cream);
+    min-width: 260px;
+  }
+
+  .principle-desc {
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--ash);
+    line-height: 1.8;
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    .container { padding: 0 24px; }
+    .dossier-grid { grid-template-columns: 1fr; }
+    .principle-strip { flex-direction: column; gap: 8px; }
+    .principle-title { min-width: unset; }
+    .footer-inner { flex-direction: column; gap: 16px; text-align: center; }
+    .file-tab { display: none; }
+  }
+
+  /* ─── SCROLL REVEAL ─── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<div class="file-tab">
+  <span class="dot"></span> Internal Document
+</div>
+
+<!-- ═══════ HERO ═══════ -->
+<section class="hero">
+  <div class="container">
+    <div class="classified-stamp">For Authorized Eyes Only</div>
+    <h1 class="hero-title">Backroom<br><em>Publishing</em></h1>
+    <p class="hero-sub">Direct Response Intelligence Bureau</p>
+    <p class="hero-intro">
+      Every profitable campaign ever written was born in a backroom somewhere. Behind closed doors. Away from the committees, the trend-chasers, the people who confuse attention with revenue. <strong>We operate in that room.</strong> We study what actually makes people buy. Not what looks good in a pitch deck.
+    </p>
+  </div>
+</section>
+
+<hr class="divider">
+<div class="divider-section">
+  <span class="divider-label">Doctrine</span>
+</div>
+<hr class="divider">
+
+<!-- ═══════ DOCTRINE ═══════ -->
+<section class="doctrine">
+  <div class="container">
+    <div class="reveal">
+      <div class="doctrine-number">01</div>
+      <h2 class="doctrine-heading">We don't do marketing.<br>We do conversion architecture.</h2>
+      <p class="doctrine-text">
+        Most agencies sell you creativity. We sell you <strong>profit</strong>. There is a difference and it shows up in the bank account. We build campaigns rooted in over six decades of direct response science, from Schwartz to Whitman to the frameworks most copywriters never bother to learn. Every brief we write is engineered to <strong>break the control</strong>, not just match it.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="doctrine">
+  <div class="container">
+    <div class="reveal">
+      <div class="doctrine-number">02</div>
+      <h2 class="doctrine-heading">We find the core emotion<br>your market cannot articulate.</h2>
+      <p class="doctrine-text">
+        People do not know what they want. They know how they feel right now, and they know how they want to feel. Every purchase is a symbolic attempt to bridge that gap. We identify the <strong>one core emotion</strong> driving all purchasing behavior in your market. Then we write to it. Not at the surface level where everyone else competes. At the bedrock, where decisions are made before the conscious mind catches up.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="doctrine">
+  <div class="container">
+    <div class="reveal">
+      <div class="doctrine-number">03</div>
+      <h2 class="doctrine-heading">The backroom is where<br>the real work happens.</h2>
+      <p class="doctrine-text">
+        This is not a place for brand guidelines presentations or mood board reviews. The backroom is where we dissect your market's desire stack, layer by layer. Where we map the irrational math your prospects run in their heads before they buy. Where we identify the scapegoat that lets them change without admitting they were wrong. <strong>The work that happens here is the work that makes everything else perform.</strong>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ MANIFESTO ═══════ -->
+<section class="manifesto">
+  <div class="container">
+    <div class="reveal">
+      <blockquote class="manifesto-quote">
+        The sharper you draw your pictures, and the greater the number you can legitimately present, the more your prospect will demand your product, and the less important will seem your price.
+      </blockquote>
+      <p class="manifesto-attr">The foundational principle</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ DOSSIER ═══════ -->
+<section class="dossier-section">
+  <div class="container">
+    <div class="dossier-section-header reveal">
+      <h2>What We Do<br>In The <em class="serif" style="color:var(--red)">Backroom</em></h2>
+      <p>Consulting, strategy, and written intelligence for brands that measure success in revenue, not impressions.</p>
+    </div>
+
+    <div class="dossier-grid">
+      <div class="dossier-card reveal">
+        <div class="dossier-card-label">File 001</div>
+        <h3>Market Psychoanalysis</h3>
+        <p>We conduct deep emotional audits of your market. Core emotion identification. Desire stack mapping. Awareness and sophistication staging. We find where your market actually lives psychologically, not where you assume they do.</p>
+      </div>
+      <div class="dossier-card reveal">
+        <div class="dossier-card-label">File 002</div>
+        <h3>Control-Breaking Briefs</h3>
+        <p>Every brief we write is designed to outperform what is currently running. We study the existing control, identify where it weakens, and write something built on deeper psychological levers. The brief is the weapon. We sharpen it until it cuts.</p>
+      </div>
+      <div class="dossier-card reveal">
+        <div class="dossier-card-label">File 003</div>
+        <h3>Conversion Consulting</h3>
+        <p>We advise on the architecture of your entire sales process. From the associative opening that builds instant trust to the justification framework that gives your prospect permission to buy. Every element is placed with intention.</p>
+      </div>
+      <div class="dossier-card reveal">
+        <div class="dossier-card-label">File 004</div>
+        <h3>Performance Copy</h3>
+        <p>Long-form sales pages. VSL scripts. Email sequences. Ads that convert, not just engage. We write copy that moves people through emotional states in the exact sequence that produces action. Tested against controls. Measured by profit.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+<div class="divider-section">
+  <span class="divider-label">Operating Principles</span>
+</div>
+<hr class="divider">
+
+<!-- ═══════ PRINCIPLES ═══════ -->
+<section class="principles">
+  <div class="container">
+    <div class="principle-strip reveal">
+      <span class="principle-num">i</span>
+      <span class="principle-title">Profit is the metric.</span>
+      <span class="principle-desc">Not clicks. Not opens. Not engagement rates. If the campaign did not produce measurable revenue above what it cost, it failed. We optimize for the only number that keeps the lights on.</span>
+    </div>
+    <div class="principle-strip reveal">
+      <span class="principle-num">ii</span>
+      <span class="principle-title">Show the mechanism.</span>
+      <span class="principle-desc">People believe what they can see more than what they hear. We do not stack claims. We demonstrate how it works. When the mechanism is visible and believable, the product sells itself.</span>
+    </div>
+    <div class="principle-strip reveal">
+      <span class="principle-num">iii</span>
+      <span class="principle-title">Describe their morning.</span>
+      <span class="principle-desc">The associative opening. We write their lived experience back to them. When you do that, they believe you have the answer, because how could you describe the problem that precisely unless you knew how to fix it?</span>
+    </div>
+    <div class="principle-strip reveal">
+      <span class="principle-num">iv</span>
+      <span class="principle-title">Give them the scapegoat.</span>
+      <span class="principle-desc">Conversion is change work. If buying means admitting they were wrong, they will not buy. Previous approaches did not fail because of who they are. They failed because the right piece was missing.</span>
+    </div>
+    <div class="principle-strip reveal">
+      <span class="principle-num">v</span>
+      <span class="principle-title">Never sell permission.</span>
+      <span class="principle-desc">You cannot justify the purchase for them. You have to get them to justify it to themselves. Our close does not convince. It gives them permission to do what they already decided they wanted to do.</span>
+    </div>
+    <div class="principle-strip reveal">
+      <span class="principle-num">vi</span>
+      <span class="principle-title">Stay in the backroom.</span>
+      <span class="principle-desc">We do not chase trends, platforms, or algorithms. The fundamentals of human desire have not changed since the first advertisement was written. We study those fundamentals. The rest is noise.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ SIGNAL ═══════ -->
+<section class="signal-section">
+  <div class="container reveal">
+    <span class="signal-overline">Restricted Access</span>
+    <h2 class="signal-heading">Not everyone is invited<br>into the backroom.</h2>
+    <p class="signal-text">
+      We work with a limited number of clients at any given time. If you are serious about performance and you measure success by what the campaign actually produced, we should talk. If you are looking for someone to make your brand "feel good," we are not the right fit.
+    </p>
+    <a class="signal-cta" href="#"><span>Request a Briefing</span></a>
+  </div>
+</section>
+
+<!-- ═══════ FOOTER ═══════ -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-logo">Backroom Publishing</div>
+      <div class="footer-legal">All intelligence proprietary &bull; <span class="redacted">2026</span></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  reveals.forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
